@@ -27,10 +27,20 @@ import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.MapStatusUpdate;
 import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.MyLocationData;
+import com.baidu.mapapi.model.LatLng;
+import com.baidu.mapapi.search.poi.OnGetPoiSearchResultListener;
+import com.baidu.mapapi.search.poi.PoiDetailResult;
+import com.baidu.mapapi.search.poi.PoiDetailSearchResult;
+import com.baidu.mapapi.search.poi.PoiIndoorResult;
+import com.baidu.mapapi.search.poi.PoiNearbySearchOption;
+import com.baidu.mapapi.search.poi.PoiResult;
+import com.baidu.mapapi.search.poi.PoiSearch;
 import com.daobao.asus.dbbaseframe.mvp.view.BaseActivity;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static android.widget.Toast.LENGTH_SHORT;
 
 public class TestActivity extends BaseActivity<Testpresenter> implements Contract.View, View.OnClickListener {
     public LocationClient locationClient;
@@ -128,14 +138,14 @@ public class TestActivity extends BaseActivity<Testpresenter> implements Contrac
                 if(grantResults.length>0){
                     for(int result:grantResults){
                         if(result!=PackageManager.PERMISSION_GRANTED){
-                            Toast.makeText(this,"必须同意才能使用",Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this,"必须同意才能使用",LENGTH_SHORT).show();
                             finish();
                             return;
                         }
                     }
                     mPresenter.requestPosition(locationClient);
                 }else{
-                    Toast.makeText(this,"未知错误",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this,"未知错误",LENGTH_SHORT).show();
                     finish();
                 }
                 break;
@@ -161,9 +171,7 @@ public class TestActivity extends BaseActivity<Testpresenter> implements Contrac
                 default:
                     break;
         }
-
-
-    }
+}
 
 //    @Override
 //    public void onClick(View view) {
