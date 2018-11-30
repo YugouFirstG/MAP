@@ -27,8 +27,10 @@ import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.MapStatusUpdate;
 import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.MyLocationData;
+import com.baidu.mapapi.map.offline.MKOLSearchRecord;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.search.poi.OnGetPoiSearchResultListener;
+import com.baidu.mapapi.search.poi.PoiCitySearchOption;
 import com.baidu.mapapi.search.poi.PoiDetailResult;
 import com.baidu.mapapi.search.poi.PoiDetailSearchResult;
 import com.baidu.mapapi.search.poi.PoiIndoorResult;
@@ -46,6 +48,7 @@ public class TestActivity extends BaseActivity<Testpresenter> implements Contrac
     public LocationClient locationClient;
     private MapView mapView;
     private BaiduMap baiduMap;
+    private PoiSearch poiSearch;
 //    private Button bt;
     private FloatingActionButton floatingActionButton;
     private FloatingActionButton floatingActionButton1;
@@ -68,6 +71,32 @@ public class TestActivity extends BaseActivity<Testpresenter> implements Contrac
         baiduMap=mapView.getMap();
         baiduMap.setMyLocationEnabled(true);
         askforacc();
+        poiSearch=PoiSearch.newInstance();
+        OnGetPoiSearchResultListener poiSearchResultListener=new OnGetPoiSearchResultListener() {
+            @Override
+            public void onGetPoiResult(PoiResult poiResult) {
+                Log.d("Poi","onGetPoi");
+            }
+
+            @Override
+            public void onGetPoiDetailResult(PoiDetailResult poiDetailResult) {
+
+            }
+
+            @Override
+            public void onGetPoiDetailResult(PoiDetailSearchResult poiDetailSearchResult) {
+
+            }
+
+            @Override
+            public void onGetPoiIndoorResult(PoiIndoorResult poiIndoorResult) {
+
+            }
+        };
+        poiSearch.setOnGetPoiSearchResultListener(poiSearchResultListener);
+        poiSearch.searchInCity((new PoiCitySearchOption())
+        .city("北京").keyword("美食").pageNum(10));
+        poiSearch.destroy();
 //        Button bt=findViewById(R.id.login);
 //        bt.setOnClickListener(this);
     }

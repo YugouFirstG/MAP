@@ -6,6 +6,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
 
+import com.baidu.mapapi.model.inner.GeoPoint;
+import com.baidu.mapapi.search.poi.PoiSearch;
+
 public class InerActivity extends AppCompatActivity {
     private TextView textView;
     @Override
