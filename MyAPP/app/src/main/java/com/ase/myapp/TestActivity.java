@@ -103,7 +103,7 @@ public class TestActivity extends BaseActivity<Testpresenter> implements Contrac
         askforacc();
         initLocation();
         mSearch=GeoCoder.newInstance();
-        search=RoutePlanSearch.newInstance();
+        search=RoutePlanSearch.newInstance();//路线实例
         search.setOnGetRoutePlanResultListener(this);
         point=new LatLng(39.963175, 116.400244);
         mSearch.setOnGetGeoCodeResultListener(this);
