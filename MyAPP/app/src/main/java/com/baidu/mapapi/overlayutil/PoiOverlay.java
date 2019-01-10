@@ -2,7 +2,6 @@ package com.baidu.mapapi.overlayutil;
 
 import android.os.Bundle;
 
-import com.ase.myapp.R;
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.BitmapDescriptorFactory;
 import com.baidu.mapapi.map.Marker;
@@ -59,7 +58,7 @@ public class PoiOverlay extends com.baidu.mapapi.overlayutil.OverlayManager {
             Bundle bundle = new Bundle();
             bundle.putInt("index", i);
             markerList.add(new MarkerOptions()
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.akm))
+                .icon(BitmapDescriptorFactory.fromAssetWithDpi("Icon_mark" + markerSize + ".png"))
                 .extraInfo(bundle)
                 .position(mPoiResult.getAllPoi().get(i).location));
             

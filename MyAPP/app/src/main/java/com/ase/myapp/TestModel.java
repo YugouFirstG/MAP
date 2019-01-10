@@ -5,7 +5,6 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.baidu.location.BDLocation;
 import com.baidu.location.BDLocationListener;
@@ -16,54 +15,69 @@ import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MyLocationConfiguration;
 import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.model.LatLng;
-import com.baidu.mapapi.search.core.SearchResult;
-import com.baidu.mapapi.search.poi.OnGetPoiSearchResultListener;
-import com.baidu.mapapi.search.poi.PoiCitySearchOption;
-import com.baidu.mapapi.search.poi.PoiDetailResult;
-import com.baidu.mapapi.search.poi.PoiDetailSearchResult;
-import com.baidu.mapapi.search.poi.PoiIndoorResult;
-import com.baidu.mapapi.search.poi.PoiResult;
-import com.baidu.mapapi.search.poi.PoiSearch;
 import com.daobao.asus.dbbaseframe.mvp.model.BaseModel;
 
 public class TestModel extends BaseModel implements Contract.Model{
-    private PoiSearch poiSearch;
+    private boolean isFirstLocate=true;
+
     public TestModel(Handler handler) {
         super(handler);
     }
-
     @Override
-    public void startPoiSearch(Context context, String city, String n) {
-        poiSearch=PoiSearch.newInstance();
-        OnGetPoiSearchResultListener listener=new OnGetPoiSearchResultListener() {
-            @Override
-            public void onGetPoiResult(PoiResult poiResult) {
-                if(poiResult==null||poiResult.error==SearchResult.ERRORNO.RESULT_NOT_FOUND){
-                    Toast.makeText(context,"未找到结果",Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                if (poiResult.error==SearchResult.ERRORNO.NO_ERROR) {
-                    Toast.makeText(context, "Poi检索" + poiResult.getTotalPageNum() + "页", Toast.LENGTH_SHORT).show();
-                }
-            }
+    public void requestPosition(LocationClient locationClient){
+        Log.d("M","requsetPosition");
+        initLocation(locationClient);
+        locationClient.start();
+        locationClient.registerLocationListener(new MyLocationListener());
+    }
+    private class MyLocationListener  implements BDLocationListener {
+        @Override
+        public void onReceiveLocation(BDLocation bdLocation) {
+            LatLng latLng=new LatLng(bdLocation.getLatitude(),bdLocation.getLongitude());
+            MapStatusUpdate update=MapStatusUpdateFactory.newLatLng(latLng);
+            MapStatusUpdate update1=MapStatusUpdateFactory.zoomTo(18f);
+            MyLocationData.Builder builder=new MyLocationData.Builder();
+            builder.longitude(bdLocation.getLongitude());
+            builder.latitude(bdLocation.getLatitude());
+            builder.accuracy(10);
+            MyLocationData data=builder.build();
+            StringBuilder currentPosition = new StringBuilder();
+            currentPosition.append("纬度：").append(bdLocation.getLatitude()).append("\n");
+            currentPosition.append("经度：").append(bdLocation.getLongitude()).append("\n");
+            currentPosition.append("国家：").append(bdLocation.getCountry()).append("\n");
+            currentPosition.append("省：").append(bdLocation.getProvince()).append("\n");
+            currentPosition.append("市：").append(bdLocation.getCity()).append("\n");
+            currentPosition.append("区：").append(bdLocation.getDistrict()).append("\n");
+            currentPosition.append("方向：").append(bdLocation.getDirection()).append("\n");
+//            currentPosition.append("街道：").append(bdLocation.getStreet()).append("\n");
+            Message message=new Message();
+            Message message1=new Message();
+            Message message2=new Message();
+            message.what=1;
+            message1.what=1;
+            message2.what=2;
+            message1.obj=update1;
+            message.obj=update;
+            message2.obj=data;
+            sendMessage(message);
+            sendMessage(message1);
+            sendMessage(message2);
+            Log.d("xinxi", String.valueOf(currentPosition));
+        }
+    }
 
-            @Override
-            public void onGetPoiDetailResult(PoiDetailResult poiDetailResult) {
-
-            }
-
-            @Override
-            public void onGetPoiDetailResult(PoiDetailSearchResult poiDetailSearchResult) {
-
-            }
-
-            @Override
-            public void onGetPoiIndoorResult(PoiIndoorResult poiIndoorResult) {
-
-            }
-        };
-        poiSearch.setOnGetPoiSearchResultListener(listener);
-        poiSearch.searchInCity(new PoiCitySearchOption().city(city).keyword(n).pageNum(10));
+    private void initLocation(LocationClient locationClient) {
+        LocationClientOption option=new LocationClientOption();
+        option.setLocationMode(LocationClientOption.LocationMode.Hight_Accuracy);
+        option.setIsNeedAddress(true);
+        option.setIsNeedAltitude(true);
+        option.setIsNeedLocationDescribe(true);
+        option.setCoorType("gcj02");
+        option.setNeedDeviceDirect(true);
+        option.setIsNeedLocationPoiList(true);
+//        option.setScanSpan(5000);
+        option.setOpenAutoNotifyMode(3000,1,LocationClientOption.LOC_SENSITIVITY_HIGHT);
+        locationClient.setLocOption(option);
     }
 
 }
