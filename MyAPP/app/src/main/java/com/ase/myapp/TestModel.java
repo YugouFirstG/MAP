@@ -1,7 +1,5 @@
 package com.ase.myapp;
 
-import android.app.Activity;
-import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -12,14 +10,12 @@ import com.baidu.location.LocationClient;
 import com.baidu.location.LocationClientOption;
 import com.baidu.mapapi.map.MapStatusUpdate;
 import com.baidu.mapapi.map.MapStatusUpdateFactory;
-import com.baidu.mapapi.map.MyLocationConfiguration;
 import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.model.LatLng;
 import com.daobao.asus.dbbaseframe.mvp.model.BaseModel;
 
 public class TestModel extends BaseModel implements Contract.Model{
     private boolean isFirstLocate=true;
-
     public TestModel(Handler handler) {
         super(handler);
     }
@@ -30,6 +26,8 @@ public class TestModel extends BaseModel implements Contract.Model{
         locationClient.start();
         locationClient.registerLocationListener(new MyLocationListener());
     }
+
+
     private class MyLocationListener  implements BDLocationListener {
         @Override
         public void onReceiveLocation(BDLocation bdLocation) {
@@ -39,7 +37,6 @@ public class TestModel extends BaseModel implements Contract.Model{
             MyLocationData.Builder builder=new MyLocationData.Builder();
             builder.longitude(bdLocation.getLongitude());
             builder.latitude(bdLocation.getLatitude());
-            builder.accuracy(10);
             MyLocationData data=builder.build();
             StringBuilder currentPosition = new StringBuilder();
             currentPosition.append("纬度：").append(bdLocation.getLatitude()).append("\n");
@@ -48,8 +45,9 @@ public class TestModel extends BaseModel implements Contract.Model{
             currentPosition.append("省：").append(bdLocation.getProvince()).append("\n");
             currentPosition.append("市：").append(bdLocation.getCity()).append("\n");
             currentPosition.append("区：").append(bdLocation.getDistrict()).append("\n");
-            currentPosition.append("方向：").append(bdLocation.getDirection()).append("\n");
 //            currentPosition.append("街道：").append(bdLocation.getStreet()).append("\n");
+
+
             Message message=new Message();
             Message message1=new Message();
             Message message2=new Message();
@@ -66,13 +64,14 @@ public class TestModel extends BaseModel implements Contract.Model{
         }
     }
 
+
     private void initLocation(LocationClient locationClient) {
         LocationClientOption option=new LocationClientOption();
         option.setLocationMode(LocationClientOption.LocationMode.Hight_Accuracy);
         option.setIsNeedAddress(true);
         option.setIsNeedAltitude(true);
         option.setIsNeedLocationDescribe(true);
-        option.setCoorType("gcj02");
+        option.setCoorType("bd09ll");
         option.setNeedDeviceDirect(true);
         option.setIsNeedLocationPoiList(true);
 //        option.setScanSpan(5000);
