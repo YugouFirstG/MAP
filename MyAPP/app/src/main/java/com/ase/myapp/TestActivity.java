@@ -4,7 +4,6 @@ package com.ase.myapp;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.Geocoder;
 import android.os.Bundle;
 import android.os.Message;
 import android.support.annotation.NonNull;
@@ -13,8 +12,6 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -23,7 +20,6 @@ import com.baidu.location.BDLocation;
 import com.baidu.location.BDLocationListener;
 import com.baidu.location.LocationClient;
 import com.baidu.location.LocationClientOption;
-import com.baidu.location.Poi;
 import com.baidu.mapapi.SDKInitializer;
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.BitmapDescriptor;
@@ -40,15 +36,14 @@ import com.baidu.mapapi.map.Overlay;
 import com.baidu.mapapi.map.OverlayOptions;
 import com.baidu.mapapi.map.Stroke;
 import com.baidu.mapapi.model.LatLng;
+import com.baidu.mapapi.overlayutil.BikingRouteOverlay;
 import com.baidu.mapapi.overlayutil.PoiOverlay;
 import com.baidu.mapapi.search.core.CityInfo;
 import com.baidu.mapapi.search.core.PoiInfo;
 import com.baidu.mapapi.search.core.SearchResult;
-import com.baidu.mapapi.search.geocode.GeoCodeOption;
 import com.baidu.mapapi.search.geocode.GeoCodeResult;
 import com.baidu.mapapi.search.geocode.GeoCoder;
 import com.baidu.mapapi.search.geocode.OnGetGeoCoderResultListener;
-import com.baidu.mapapi.search.geocode.ReverseGeoCodeOption;
 import com.baidu.mapapi.search.geocode.ReverseGeoCodeResult;
 import com.baidu.mapapi.search.poi.OnGetPoiSearchResultListener;
 import com.baidu.mapapi.search.poi.PoiCitySearchOption;
@@ -58,17 +53,28 @@ import com.baidu.mapapi.search.poi.PoiDetailSearchResult;
 import com.baidu.mapapi.search.poi.PoiIndoorResult;
 import com.baidu.mapapi.search.poi.PoiResult;
 import com.baidu.mapapi.search.poi.PoiSearch;
+import com.baidu.mapapi.search.route.BikingRoutePlanOption;
+import com.baidu.mapapi.search.route.BikingRouteResult;
+import com.baidu.mapapi.search.route.DrivingRouteResult;
+import com.baidu.mapapi.search.route.IndoorRouteResult;
+import com.baidu.mapapi.search.route.MassTransitRouteResult;
+import com.baidu.mapapi.search.route.OnGetRoutePlanResultListener;
+import com.baidu.mapapi.search.route.PlanNode;
+import com.baidu.mapapi.search.route.RoutePlanSearch;
+import com.baidu.mapapi.search.route.TransitRouteResult;
+import com.baidu.mapapi.search.route.WalkingRouteResult;
 import com.daobao.asus.dbbaseframe.mvp.view.BaseActivity;
 import java.util.ArrayList;
 import java.util.List;
 import static android.widget.Toast.LENGTH_SHORT;
 
-public class TestActivity extends BaseActivity<Testpresenter> implements Contract.View, View.OnClickListener, OnGetGeoCoderResultListener, OnGetPoiSearchResultListener {
+public class TestActivity extends BaseActivity<Testpresenter> implements Contract.View, View.OnClickListener, OnGetGeoCoderResultListener, OnGetPoiSearchResultListener, OnGetRoutePlanResultListener {
     public LocationClient locationClient;
     private boolean isFristLoctation=true;
     private MapView mapView;
     private BaiduMap baiduMap;
     private GeoCoder mSearch;
+    private RoutePlanSearch search;
     private PoiSearch poiSearch;
     private LatLng point;
     private float myCurrentX=-1;
@@ -97,6 +103,8 @@ public class TestActivity extends BaseActivity<Testpresenter> implements Contrac
         askforacc();
         initLocation();
         mSearch=GeoCoder.newInstance();
+        search=RoutePlanSearch.newInstance();
+        search.setOnGetRoutePlanResultListener(this);
         point=new LatLng(39.963175, 116.400244);
         mSearch.setOnGetGeoCodeResultListener(this);
         BitmapDescriptor bitmap=BitmapDescriptorFactory.fromResource(R.drawable.bb);
@@ -145,6 +153,39 @@ public class TestActivity extends BaseActivity<Testpresenter> implements Contrac
 
     @Override
     public void PoiResearch(Message msg) {
+
+    }
+
+    @Override
+    public void onGetWalkingRouteResult(WalkingRouteResult walkingRouteResult) {
+    }
+
+    @Override
+    public void onGetTransitRouteResult(TransitRouteResult transitRouteResult) {
+    }
+
+    @Override
+    public void onGetMassTransitRouteResult(MassTransitRouteResult massTransitRouteResult) {
+
+    }
+
+    @Override
+    public void onGetDrivingRouteResult(DrivingRouteResult drivingRouteResult) {
+
+    }
+
+    @Override
+    public void onGetIndoorRouteResult(IndoorRouteResult indoorRouteResult) {
+
+    }
+
+    @Override
+    public void onGetBikingRouteResult(BikingRouteResult bikingRouteResult) {
+        BikingRouteOverlay overlay=new BikingRouteOverlay(baiduMap);
+        if(bikingRouteResult.getRouteLines().size()>0){
+            overlay.setData(bikingRouteResult.getRouteLines().get(0));
+            overlay.addToMap();
+        }
 
     }
 
@@ -229,6 +270,7 @@ public class TestActivity extends BaseActivity<Testpresenter> implements Contrac
         mapView.onDestroy();
         baiduMap.setMyLocationEnabled(false);
         poiSearch.destroy();
+        search.destroy();
         myOrientationListener.stop();
         Intent intent=new Intent(TestActivity.this,LocationService.class);
         stopService(intent);
@@ -297,9 +339,13 @@ public class TestActivity extends BaseActivity<Testpresenter> implements Contrac
     public void onClick(View view) {
         switch(view.getId()){
             case R.id.flbt:
-                isFristLoctation=true;
-                myOrientationListener.start();
-                locationClient.start();
+                PlanNode stNode = PlanNode.withCityNameAndPlaceName("北京", "西二旗地铁站");
+                PlanNode enNode = PlanNode.withCityNameAndPlaceName("北京", "百度科技园");
+                search.bikingSearch((new BikingRoutePlanOption()).from(stNode)
+                        .to(enNode).ridingType(0));
+//                isFristLoctation=true;
+////                myOrientationListener.start();
+////                locationClient.start();
                 break;
             case R.id.flbt1:
                 baiduMap.clear();
