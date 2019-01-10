@@ -13,6 +13,8 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -21,12 +23,14 @@ import com.baidu.location.BDLocation;
 import com.baidu.location.BDLocationListener;
 import com.baidu.location.LocationClient;
 import com.baidu.location.LocationClientOption;
+import com.baidu.location.Poi;
 import com.baidu.mapapi.SDKInitializer;
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.BitmapDescriptor;
 import com.baidu.mapapi.map.BitmapDescriptorFactory;
 import com.baidu.mapapi.map.CircleOptions;
 import com.baidu.mapapi.map.MapStatusUpdate;
+import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.Marker;
 import com.baidu.mapapi.map.MarkerOptions;
@@ -36,6 +40,9 @@ import com.baidu.mapapi.map.Overlay;
 import com.baidu.mapapi.map.OverlayOptions;
 import com.baidu.mapapi.map.Stroke;
 import com.baidu.mapapi.model.LatLng;
+import com.baidu.mapapi.overlayutil.PoiOverlay;
+import com.baidu.mapapi.search.core.CityInfo;
+import com.baidu.mapapi.search.core.PoiInfo;
 import com.baidu.mapapi.search.core.SearchResult;
 import com.baidu.mapapi.search.geocode.GeoCodeOption;
 import com.baidu.mapapi.search.geocode.GeoCodeResult;
@@ -43,19 +50,28 @@ import com.baidu.mapapi.search.geocode.GeoCoder;
 import com.baidu.mapapi.search.geocode.OnGetGeoCoderResultListener;
 import com.baidu.mapapi.search.geocode.ReverseGeoCodeOption;
 import com.baidu.mapapi.search.geocode.ReverseGeoCodeResult;
+import com.baidu.mapapi.search.poi.OnGetPoiSearchResultListener;
+import com.baidu.mapapi.search.poi.PoiCitySearchOption;
+import com.baidu.mapapi.search.poi.PoiDetailResult;
+import com.baidu.mapapi.search.poi.PoiDetailSearchOption;
+import com.baidu.mapapi.search.poi.PoiDetailSearchResult;
+import com.baidu.mapapi.search.poi.PoiIndoorResult;
+import com.baidu.mapapi.search.poi.PoiResult;
 import com.baidu.mapapi.search.poi.PoiSearch;
 import com.daobao.asus.dbbaseframe.mvp.view.BaseActivity;
 import java.util.ArrayList;
 import java.util.List;
 import static android.widget.Toast.LENGTH_SHORT;
 
-public class TestActivity extends BaseActivity<Testpresenter> implements Contract.View, View.OnClickListener, OnGetGeoCoderResultListener {
+public class TestActivity extends BaseActivity<Testpresenter> implements Contract.View, View.OnClickListener, OnGetGeoCoderResultListener, OnGetPoiSearchResultListener {
     public LocationClient locationClient;
+    private boolean isFristLoctation=true;
     private MapView mapView;
     private BaiduMap baiduMap;
     private GeoCoder mSearch;
+    private PoiSearch poiSearch;
     private LatLng point;
-    private float myCurrentX;
+    private float myCurrentX=-1;
     private  MyOrientationListener myOrientationListener;
     private FloatingActionButton floatingActionButton;
     private FloatingActionButton floatingActionButton1;
@@ -63,17 +79,14 @@ public class TestActivity extends BaseActivity<Testpresenter> implements Contrac
     private MyLocationConfiguration.LocationMode mCurrentMode;
     private BitmapDescriptor mCurrentMarker=null;
     private LatLng latLng;
+    private List<CityInfo> cityInfoList;
     @Override
     public Testpresenter binPresenter() {
         return new Testpresenter(this);
     }
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        locationClient=new LocationClient(getApplicationContext());
-        LocationClientOption option=new LocationClientOption();
-        option.setCoorType("gcj02");
         SDKInitializer.initialize(getApplicationContext());
         setContentView(R.layout.map);
         mapView=findViewById(R.id.bmapView);
@@ -82,18 +95,8 @@ public class TestActivity extends BaseActivity<Testpresenter> implements Contrac
         baiduMap=mapView.getMap();
         baiduMap.setMyLocationEnabled(true);
         askforacc();
-
+        initLocation();
         mSearch=GeoCoder.newInstance();
-//        OnGetGeoCoderResultListener listener=new OnGetGeoCoderResultListener() {
-//            @Override
-//            public void onGetGeoCodeResult(GeoCodeResult geoCodeResult) {
-//            }
-//
-//            @Override
-//            public void onGetReverseGeoCodeResult(ReverseGeoCodeResult reverseGeoCodeResult) {
-
-//            }
-//        };
         point=new LatLng(39.963175, 116.400244);
         mSearch.setOnGetGeoCodeResultListener(this);
         BitmapDescriptor bitmap=BitmapDescriptorFactory.fromResource(R.drawable.bb);
@@ -119,48 +122,56 @@ public class TestActivity extends BaseActivity<Testpresenter> implements Contrac
                 Toast.makeText(TestActivity.this,"start",Toast.LENGTH_SHORT).show();
             }
         });
-
-
-//        OverlayOptions overlayOptions=new MarkerOptions()
-//                .position(latLng)
-//                .icon(mCurrentMarker)
-//                .zIndex(9)
-//                .draggable(true);
-//        Overlay marker=baiduMap.addOverlay(overlayOptions);
-//        baiduMap.setOnMarkerClickListener(new);
-//        poiSearch=PoiSearch.newInstance();
-//        Log.d("POI","检索实例");
-//        OnGetPoiSearchResultListener poiListener=new OnGetPoiSearchResultListener() {
-//            @Override
-//            public void onGetPoiResult(PoiResult poiResult) {
-//
-//            }
-//
-//            @Override
-//            public void onGetPoiDetailResult(PoiDetailResult poiDetailResult) {
-//                Toast.makeText(TestActivity.this,"未找到结果",Toast.LENGTH_LONG).show();
-//                Log.d("POI","failed");
-//            }
-//
-//            @Override
-//            public void onGetPoiDetailResult(PoiDetailSearchResult poiDetailSearchResult) {
-//
-//            }
-//
-//            @Override
-//            public void onGetPoiIndoorResult(PoiIndoorResult poiIndoorResult) {
-//
-//            }
-//        };
-//        poiSearch.setOnGetPoiSearchResultListener(poiListener);
-//        Log.d("POI","设置POI检索监听者");
-//        poiSearch.searchInCity((new PoiCitySearchOption())
-//                .city("天安门")
-//                .keyword("美食")
-//                .pageNum(10));
-//        Log.d("POI","释放POI检索实例");
-//        poiSearch.destroy();
+        poiSearch=PoiSearch.newInstance();
+        poiSearch.setOnGetPoiSearchResultListener(this);
+        myOrientationListener=new MyOrientationListener(this);
+        myOrientationListener.setOnOrientationListener(x -> myCurrentX=x);
 }
+    private void initLocation() {
+        locationClient=new LocationClient(getApplicationContext());
+        MyLocationListener myLocationListener=new MyLocationListener();
+        LocationClientOption option=new LocationClientOption();
+        option.setLocationMode(LocationClientOption.LocationMode.Hight_Accuracy);
+        option.setIsNeedAddress(true);
+        option.setIsNeedAltitude(true);
+        option.setIsNeedLocationDescribe(true);
+        option.setCoorType("gcj02");
+        option.setNeedDeviceDirect(true);
+        option.setIsNeedLocationPoiList(true);
+        option.setScanSpan(3000);
+        locationClient.setLocOption(option);
+        locationClient.registerLocationListener(myLocationListener);
+    }
+
+    @Override
+    public void PoiResearch(Message msg) {
+
+    }
+
+    private class MyLocationListener  implements BDLocationListener {
+        @Override
+        public void onReceiveLocation(BDLocation bdLocation) {
+                LatLng latLng=new LatLng(bdLocation.getLatitude(),bdLocation.getLongitude());
+                if(isFristLoctation){
+                    MapStatusUpdate update=MapStatusUpdateFactory.newLatLng(latLng);
+                    baiduMap.animateMapStatus(update);
+                    MapStatusUpdate update1=MapStatusUpdateFactory.zoomTo(16f);
+                    isFristLoctation=false;
+                }
+                MyLocationData.Builder builder=new MyLocationData.Builder();
+                builder.longitude(bdLocation.getLongitude());
+                builder.latitude(bdLocation.getLatitude());
+                builder.accuracy(10);
+                builder.direction(myCurrentX);
+                MyLocationData data=builder.build();
+            baiduMap.setMyLocationConfiguration(new MyLocationConfiguration(mCurrentMode,
+                    true,mCurrentMarker,
+                    0xFFA4F198,
+                    0xFFA4F198));
+                baiduMap.setMyLocationData(data);
+        }
+    }
+
     private  void addMyLocation(){
         baiduMap.setMyLocationConfiguration(new MyLocationConfiguration(mCurrentMode, true, mCurrentMarker));
         baiduMap.clear();
@@ -173,18 +184,6 @@ public class TestActivity extends BaseActivity<Testpresenter> implements Contrac
 
     }
 
-//    private void useLocationOrientationListener(){
-//////        Log.d("Test", "myCrurrentX1");
-//////        myOrientationListener=new MyOrientationListener(TestActivity.this);
-//////        myOrientationListener.setMyOrientationListener(new MyOrientationListener.onOrientationListener() {
-//////            @Override
-//////            public void onOrientationChanged(float x) {
-//////                myCurrentX=x;
-//////                Log.d("Test", "myCrurrentX2");
-//////            }
-//////        });
-//////        Log.d("Test", "myCrurrentX3");
-//////    }
 
     private void addCircleOverlay(LatLng latLng){
         CircleOptions circleOptions=new CircleOptions();
@@ -229,6 +228,16 @@ public class TestActivity extends BaseActivity<Testpresenter> implements Contrac
         locationClient.stop();
         mapView.onDestroy();
         baiduMap.setMyLocationEnabled(false);
+        poiSearch.destroy();
+        myOrientationListener.stop();
+        Intent intent=new Intent(TestActivity.this,LocationService.class);
+        stopService(intent);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        myOrientationListener.start();
     }
 
     @Override
@@ -244,25 +253,24 @@ public class TestActivity extends BaseActivity<Testpresenter> implements Contrac
         Log.d("ACT","resume");
         mapView.onResume();
     }
+    //    @Override
+//    public void PositionResponse(Message message) {
+//        baiduMap.animateMapStatus((MapStatusUpdate) message.obj);
+////        pTv.setText((CharSequence) message.obj);
+//        Log.d("Testa","s");
+//    }
 
-    @Override
-    public void PositionResponse(Message message) {
-        baiduMap.animateMapStatus((MapStatusUpdate) message.obj);
-//        pTv.setText((CharSequence) message.obj);
-        Log.d("Testa","s");
-    }
-
-    @Override
-    public void DispMyLocation(Message message) {
-        baiduMap.setMyLocationConfiguration(new MyLocationConfiguration(mCurrentMode,
-                true,mCurrentMarker,
-                0xFFA4F198,
-                0xFFA4F198));
-        baiduMap.setMyLocationData((MyLocationData) message.obj);
+//    @Override
+//    public void DispMyLocation(Message message) {
+//        baiduMap.setMyLocationConfiguration(new MyLocationConfiguration(mCurrentMode,
+//                true,mCurrentMarker,
+//                0xFFA4F198,
+//                0xFFA4F198));
+//        baiduMap.setMyLocationData((MyLocationData) message.obj);
         ;
 //        LatLng lng=new LatLng(((MyLocationData) message.obj).latitude,((MyLocationData) message.obj).longitude);
 //        addCircleOverlay(lng);
-    }
+//    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -276,7 +284,6 @@ public class TestActivity extends BaseActivity<Testpresenter> implements Contrac
                             return;
                         }
                     }
-                    mPresenter.requestPosition(locationClient);
                 }else{
                     Toast.makeText(this,"未知错误",LENGTH_SHORT).show();
                     finish();
@@ -290,19 +297,22 @@ public class TestActivity extends BaseActivity<Testpresenter> implements Contrac
     public void onClick(View view) {
         switch(view.getId()){
             case R.id.flbt:
-                locationClient.stop();
-                locationClient=new LocationClient(getApplicationContext());
-                mPresenter.requestPosition(locationClient);
+                isFristLoctation=true;
+                myOrientationListener.start();
+                locationClient.start();
                 break;
             case R.id.flbt1:
+                baiduMap.clear();
+                Log.d("方向",""+myCurrentX);
                 editText=findViewById(R.id.city);
                 editText1=findViewById(R.id.district);
-//
 //                mSearch.reverseGeoCode(new ReverseGeoCodeOption().location(point));
                 String edtext,edtext1;
                 edtext=editText.getText().toString();
                 edtext1=editText1.getText().toString();
-                mSearch.geocode(new GeoCodeOption().city(edtext).address(edtext1));
+                poiSearch.searchInCity(new PoiCitySearchOption().city(edtext).keyword(edtext1).pageNum(10));
+                mPresenter.startPoiSearch(TestActivity.this,edtext,edtext1);
+//                mSearch.geocode(new GeoCodeOption().city(edtext).address(edtext1));
                 break;
                 default:
                     break;
@@ -330,23 +340,52 @@ public class TestActivity extends BaseActivity<Testpresenter> implements Contrac
 //        mSearch.destroy();
     }
 
-//    private class MyPoiOverlay extends PoiOverlay {
-//
-//        /**
-//         * 构造函数
-//         *
-//         * @param baiduMap 该 PoiOverlay 引用的 BaiduMap 对象
-//         */
-//        public MyPoiOverlay(BaiduMap baiduMap) {
-//            super(baiduMap);
-//        }
-//
-//        @Override
-//        public boolean onPoiClick(int i) {
-//            super.onPoiClick(i);
-//            PoiInfo poiInfo=getPoiResult().getAllPoi().get(i);
-//            poiSearch.searchPoiDetail(new PoiDetailSearchOption().poiUid(poiInfo.uid));
-//            return true;
-//        }
-//    }
+    @Override
+    public void onGetPoiResult(PoiResult poiResult) {
+        if(poiResult==null||poiResult.error==SearchResult.ERRORNO.RESULT_NOT_FOUND){
+//            Toast.makeText(TestActivity.this,"未找到结果",Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (poiResult.error==SearchResult.ERRORNO.NO_ERROR) {
+            MyPoiOverlay poiOverlay=new MyPoiOverlay(baiduMap);
+            poiOverlay.setData(poiResult);
+            baiduMap.setOnMarkerClickListener(poiOverlay);
+            poiOverlay.addToMap();
+            poiOverlay.zoomToSpan();
+//            Toast.makeText(TestActivity.this, "Poi检索" + poiResult.getTotalPageNum() + "页", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onGetPoiDetailResult(PoiDetailResult poiDetailResult) {
+        if (poiDetailResult.error!=SearchResult.ERRORNO.NO_ERROR){
+            Toast.makeText(TestActivity.this,"未找到详细结果",Toast.LENGTH_SHORT).show();
+        }else {
+            Toast.makeText(TestActivity.this,poiDetailResult.getName()+":"+poiDetailResult.getAddress(),Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onGetPoiDetailResult(PoiDetailSearchResult poiDetailSearchResult) {
+
+    }
+
+    @Override
+    public void onGetPoiIndoorResult(PoiIndoorResult poiIndoorResult) {
+
+    }
+
+    private class MyPoiOverlay extends PoiOverlay {
+        public MyPoiOverlay(BaiduMap baiduMap) {
+            super(baiduMap);
+        }
+
+        @Override
+        public boolean onPoiClick(int i) {
+            super.onPoiClick(i);
+            PoiInfo poiInfo=getPoiResult().getAllPoi().get(i);
+            poiSearch.searchPoiDetail(new PoiDetailSearchOption().poiUid(poiInfo.uid));
+            return true;
+        }
+    }
 }

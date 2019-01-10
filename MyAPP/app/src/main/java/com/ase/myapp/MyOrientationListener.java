@@ -6,50 +6,86 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 
-public class MyOrientationListener implements SensorEventListener {
-    private SensorManager mySensorManager;
-    private Sensor mySensor;
-    private Context myContext;
+public class MyOrientationListener implements SensorEventListener
+{
+    private SensorManager mSensorManager;
+    private Context mContext;
+    //传感器
+    private Sensor mSensor;
     private float lastX;
-    private onOrientationListener myOrientationListener;
-    public void start(){
-        mySensorManager=(SensorManager) myContext.getSystemService(Context.SENSOR_SERVICE);
-        if(mySensorManager!=null){
-            mySensor=mySensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
+
+    //构造方法
+    public MyOrientationListener(Context context)
+    {
+        this.mContext = context;
+    }
+
+    @SuppressWarnings("deprecation")
+    //开始监听
+    public void start()
+    {
+        //拿到系统服务
+        mSensorManager = (SensorManager) mContext.getSystemService(Context.SENSOR_SERVICE);
+        if (mSensorManager != null)
+        {
+            // 获得方向传感器
+            mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
         }
-        if(mySensor!=null){
-            mySensorManager.registerListener(this,mySensor,SensorManager.SENSOR_DELAY_UI);
+
+        if (mSensor != null)
+        {
+            mSensorManager.registerListener(this, mSensor,
+                    SensorManager.SENSOR_DELAY_UI);
         }
     }
-    public void stop(){
-        mySensorManager.unregisterListener(this);
+
+    //结束监听
+    public void stop()
+    {
+        mSensorManager.unregisterListener(this);
     }
-    public MyOrientationListener(Context myContext) {//方向传感器的一个构造器
-        super();
-        this.myContext = myContext;
-    }
+
     @Override
-    public void onSensorChanged(SensorEvent sensorEvent) {
-            if(sensorEvent.sensor.getType()==Sensor.TYPE_ORIENTATION){
-                float x=sensorEvent.values[SensorManager.DATA_X];
-                if(Math.abs(x-lastX)>1.0){
-                    if(myOrientationListener!=null){
-                        myOrientationListener.onOrientationChanged(lastX);
-                    }
+    public void onAccuracyChanged(Sensor arg0, int arg1)
+    {
+        // TODO Auto-generated method stub
+
+    }
+
+    @SuppressWarnings(
+            { "deprecation" })
+    @Override
+    //方向发生变化
+    public void onSensorChanged(SensorEvent event)
+    {
+        if (event.sensor.getType() == Sensor.TYPE_ORIENTATION)
+        {
+            float x = event.values[SensorManager.DATA_X];
+
+            if (Math.abs(x - lastX) > 1.0)
+            {
+                if (mOnOrientationListener != null)
+                {
+                    mOnOrientationListener.onOrientationChanged(x);
                 }
-                lastX=x;
             }
-    }
-    public void setMyOrientationListener(onOrientationListener myOrientationListener) {
-        this.myOrientationListener = myOrientationListener;
-    }
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int i) {
 
+            lastX = x;
+
+        }
     }
 
-    public interface onOrientationListener{
+    private OnOrientationListener mOnOrientationListener;
 
-        void onOrientationChanged(float x);//回调的方法
+    public void setOnOrientationListener(
+            OnOrientationListener mOnOrientationListener)
+    {
+        this.mOnOrientationListener = mOnOrientationListener;
     }
+
+    public interface OnOrientationListener
+    {
+        void onOrientationChanged(float x);
+    }
+
 }

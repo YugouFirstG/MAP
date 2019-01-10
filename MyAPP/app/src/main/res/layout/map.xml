@@ -4,6 +4,7 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
 <LinearLayout
+    android:id="@+id/action_bar"
     android:layout_width="match_parent"
     android:layout_height="0dp"
     android:layout_weight="0.618"
@@ -18,7 +19,8 @@
         android:id="@+id/city"
         android:layout_width="0dp"
         android:layout_weight="1"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:textSize="15sp"/>
     <TextView
         android:layout_width="0dp"
         android:layout_weight="0.5"
@@ -29,13 +31,14 @@
         android:id="@+id/district"
         android:layout_width="0dp"
         android:layout_weight="1"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:textSize="15sp"/>
+
     <android.support.design.widget.FloatingActionButton
+        android:id="@+id/flbt1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/flbt1"
-        android:layout_gravity="end"
-        />
+        android:layout_gravity="end" />
 </LinearLayout>
 
     <!--<LinearLayout-->
