@@ -1,5 +1,6 @@
 package com.ase.myapp;
 
+import android.content.Context;
 import android.os.Message;
 
 import com.baidu.location.BDLocationListener;
@@ -8,13 +9,12 @@ import com.baidu.mapapi.map.BaiduMap;
 
 public interface Contract {
     interface View{
-        void PositionResponse(Message message);
-        void DispMyLocation(Message message);
+        void PoiResearch(Message msg);
        // void loginResponse(Message msg);
        // void jump();
     }
     interface Model{
-        void requestPosition(LocationClient locationClient);
+        void startPoiSearch(Context context,String city,String n);
        // void login(String a,String p);
     }
 }
