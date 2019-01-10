@@ -1,6 +1,5 @@
 package com.ase.myapp;
 
-import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -25,14 +24,23 @@ public class Testpresenter extends BasePresenter<TestModel,TestActivity> {
         switch (msg.what){
             case 1:
                 Log.d("P","msg");
+                mView.PositionResponse(msg);
                 break;
             case 2:
+                mView.DispMyLocation(msg);
                 break;
-
+//                mView.loginResponse(msg);
+//                break;
+//            case 2:
+//                mView.loginResponse(msg);
+//                mView.jump();
+//                break;
         }
     }
-    public void startPoiSearch(Context context, String city, String n) {
-        mModel.startPoiSearch(context,city,n);
+
+    public void requestPosition(LocationClient locationClient){
+        Log.d("P","M.requstPosition");
+        mModel.requestPosition(locationClient);
     }
 //    public void login(String a,String b){
 //        mModel.login(a,b);
