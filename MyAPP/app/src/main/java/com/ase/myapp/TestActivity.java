@@ -69,19 +69,15 @@ import java.util.List;
 
 import static android.widget.Toast.LENGTH_SHORT;
 
-<<<<<<< HEAD
+
 public class TestActivity extends BaseActivity<Testpresenter> implements Contract.View, View.OnClickListener, OnGetGeoCoderResultListener, OnGetPoiSearchResultListener, OnGetRoutePlanResultListener {
-=======
+
 public class TestActivity extends BaseActivity<Testpresenter> implements Contract.View, View.OnClickListener {
->>>>>>> 989cc01160c148d3b950a594ef7abe7c5359686e
     public LocationClient locationClient;
     private MapView mapView;
     private BaiduMap baiduMap;
-<<<<<<< HEAD
     private GeoCoder mSearch;
     private RoutePlanSearch search;
-=======
->>>>>>> 989cc01160c148d3b950a594ef7abe7c5359686e
     private PoiSearch poiSearch;
 //    private Button bt;
     private FloatingActionButton floatingActionButton;
@@ -105,7 +101,6 @@ public class TestActivity extends BaseActivity<Testpresenter> implements Contrac
         baiduMap=mapView.getMap();
         baiduMap.setMyLocationEnabled(true);
         askforacc();
-<<<<<<< HEAD
         initLocation();
         mSearch=GeoCoder.newInstance();
         search=RoutePlanSearch.newInstance();
@@ -120,10 +115,8 @@ public class TestActivity extends BaseActivity<Testpresenter> implements Contrac
         baiduMap.addOverlay(options);
         Marker marker=(Marker) baiduMap.addOverlay(options);
         baiduMap.setOnMarkerDragListener(new BaiduMap.OnMarkerDragListener() {
-=======
         poiSearch=PoiSearch.newInstance();
         OnGetPoiSearchResultListener poiSearchResultListener=new OnGetPoiSearchResultListener() {
->>>>>>> 989cc01160c148d3b950a594ef7abe7c5359686e
             @Override
             public void onGetPoiResult(PoiResult poiResult) {
                 Log.d("Poi","onGetPoi");
@@ -194,9 +187,7 @@ public class TestActivity extends BaseActivity<Testpresenter> implements Contrac
                 baiduMap.setMyLocationData(data);
         }
     }
-=======
             }
->>>>>>> 989cc01160c148d3b950a594ef7abe7c5359686e
 
             @Override
             public void onGetPoiIndoorResult(PoiIndoorResult poiIndoorResult) {
@@ -242,7 +233,6 @@ public class TestActivity extends BaseActivity<Testpresenter> implements Contrac
         locationClient.stop();
         mapView.onDestroy();
         baiduMap.setMyLocationEnabled(false);
-<<<<<<< HEAD
         poiSearch.destroy();
         search.destroy();
         myOrientationListener.stop();
@@ -254,8 +244,6 @@ public class TestActivity extends BaseActivity<Testpresenter> implements Contrac
     protected void onStart() {
         super.onStart();
         myOrientationListener.start();
-=======
->>>>>>> 989cc01160c148d3b950a594ef7abe7c5359686e
     }
 
     @Override
@@ -310,7 +298,6 @@ public class TestActivity extends BaseActivity<Testpresenter> implements Contrac
     public void onClick(View view) {
         switch(view.getId()){
             case R.id.flbt:
-<<<<<<< HEAD
                 PlanNode stNode = PlanNode.withCityNameAndPlaceName("北京", "西二旗地铁站");
                 PlanNode enNode = PlanNode.withCityNameAndPlaceName("北京", "百度科技园");
                 search.bikingSearch((new BikingRoutePlanOption()).from(stNode)
@@ -318,11 +305,9 @@ public class TestActivity extends BaseActivity<Testpresenter> implements Contrac
 //                isFristLoctation=true;
 ////                myOrientationListener.start();
 ////                locationClient.start();
-=======
                 locationClient.stop();
                 locationClient=new LocationClient(getApplicationContext());
                 mPresenter.requestPosition(locationClient);
->>>>>>> 989cc01160c148d3b950a594ef7abe7c5359686e
                 break;
             case R.id.flbt1:
 //                String edtext;
