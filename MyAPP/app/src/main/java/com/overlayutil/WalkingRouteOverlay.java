@@ -4,6 +4,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.ase.myapp.R;
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.BitmapDescriptor;
 import com.baidu.mapapi.map.BitmapDescriptorFactory;
@@ -60,7 +61,7 @@ public class WalkingRouteOverlay extends OverlayManager {
                                                     .anchor(0.5f, 0.5f)
                                                             .extraInfo(b)
                                                                     .icon(BitmapDescriptorFactory
-                                                                            .fromAssetWithDpi("Icon_line_node.png")));
+                                                                            .fromResource(R.drawable.akm)));
                 }
 
                 // 最后路段绘制出口点
@@ -71,7 +72,7 @@ public class WalkingRouteOverlay extends OverlayManager {
                                     .anchor(0.5f, 0.5f)
                                             .zIndex(10)
                                                     .icon(BitmapDescriptorFactory
-                                                            .fromAssetWithDpi("Icon_line_node.png")));
+                                                            .fromResource(R.drawable.akm)));
 
                 }
             }
@@ -82,7 +83,7 @@ public class WalkingRouteOverlay extends OverlayManager {
                     .position(mRouteLine.getStarting().getLocation())
                             .icon(getStartMarker() != null ? getStartMarker() :
                                     BitmapDescriptorFactory
-                                            .fromAssetWithDpi("Icon_start.png")).zIndex(10));
+                                            .fromResource(R.drawable.bb)).zIndex(10));
         }
         // terminal
         if (mRouteLine.getTerminal() != null) {
@@ -91,7 +92,7 @@ public class WalkingRouteOverlay extends OverlayManager {
                             .position(mRouteLine.getTerminal().getLocation())
                                     .icon(getTerminalMarker() != null ? getTerminalMarker() :
                                             BitmapDescriptorFactory
-                                                    .fromAssetWithDpi("Icon_end.png"))
+                                                    .fromResource(R.drawable.bb))
                                                             .zIndex(10));
         }
 
