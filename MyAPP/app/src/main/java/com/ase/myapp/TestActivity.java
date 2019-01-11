@@ -14,6 +14,7 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.baidu.location.BDLocation;
@@ -21,6 +22,11 @@ import com.baidu.location.BDLocationListener;
 import com.baidu.location.LocationClient;
 import com.baidu.location.LocationClientOption;
 import com.baidu.mapapi.SDKInitializer;
+import com.baidu.mapapi.bikenavi.BikeNavigateHelper;
+import com.baidu.mapapi.bikenavi.adapter.IBEngineInitListener;
+import com.baidu.mapapi.bikenavi.adapter.IBRoutePlanListener;
+import com.baidu.mapapi.bikenavi.model.BikeRoutePlanError;
+import com.baidu.mapapi.bikenavi.params.BikeNaviLaunchParam;
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.BitmapDescriptor;
 import com.baidu.mapapi.map.BitmapDescriptorFactory;
@@ -68,24 +74,26 @@ import java.util.ArrayList;
 import java.util.List;
 import static android.widget.Toast.LENGTH_SHORT;
 
-public class TestActivity extends BaseActivity<Testpresenter> implements Contract.View, View.OnClickListener, OnGetGeoCoderResultListener, OnGetPoiSearchResultListener, OnGetRoutePlanResultListener {
+public class TestActivity extends BaseActivity<Testpresenter> implements Contract.View, View.OnClickListener, OnGetGeoCoderResultListener, OnGetRoutePlanResultListener {
     public LocationClient locationClient;
     private boolean isFristLoctation=true;
     private MapView mapView;
     private BaiduMap baiduMap;
-    private GeoCoder mSearch;
+//    private GeoCoder mSearch;
     private RoutePlanSearch search;
-    private PoiSearch poiSearch;
-    private LatLng point;
+    private LatLng point,ePoint;
     private float myCurrentX=-1;
     private  MyOrientationListener myOrientationListener;
     private FloatingActionButton floatingActionButton;
     private FloatingActionButton floatingActionButton1;
+    private ImageButton imageButton;
     private EditText editText,editText1;
     private MyLocationConfiguration.LocationMode mCurrentMode;
     private BitmapDescriptor mCurrentMarker=null;
     private LatLng latLng;
     private List<CityInfo> cityInfoList;
+    private BikeNaviLaunchParam param;
+    private String edtext,edtext1;
     @Override
     public Testpresenter binPresenter() {
         return new Testpresenter(this);
@@ -98,40 +106,44 @@ public class TestActivity extends BaseActivity<Testpresenter> implements Contrac
         mapView=findViewById(R.id.bmapView);
         floatingActionButton=findViewById(R.id.flbt);
         floatingActionButton1=findViewById(R.id.flbt1);
+        imageButton=findViewById(R.id.route);
+        imageButton.setOnClickListener(this);
         baiduMap=mapView.getMap();
         baiduMap.setMyLocationEnabled(true);
         askforacc();
         initLocation();
-        mSearch=GeoCoder.newInstance();
+        editText=findViewById(R.id.city);
+        editText1=findViewById(R.id.district);
+//        mSearch=GeoCoder.newInstance();
         search=RoutePlanSearch.newInstance();//路线实例
         search.setOnGetRoutePlanResultListener(this);
-        point=new LatLng(39.963175, 116.400244);
-        mSearch.setOnGetGeoCodeResultListener(this);
-        BitmapDescriptor bitmap=BitmapDescriptorFactory.fromResource(R.drawable.bb);
-        OverlayOptions options=new MarkerOptions()
-                .position(point)
-                .icon(bitmap)
-                .draggable(true);
-        baiduMap.addOverlay(options);
-        Marker marker=(Marker) baiduMap.addOverlay(options);
-        baiduMap.setOnMarkerDragListener(new BaiduMap.OnMarkerDragListener() {
-            @Override
-            public void onMarkerDrag(Marker marker) {
-                Toast.makeText(TestActivity.this,"moving",Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onMarkerDragEnd(Marker marker) {
-                Toast.makeText(TestActivity.this,"stop",Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onMarkerDragStart(Marker marker) {
-                Toast.makeText(TestActivity.this,"start",Toast.LENGTH_SHORT).show();
-            }
-        });
-        poiSearch=PoiSearch.newInstance();
-        poiSearch.setOnGetPoiSearchResultListener(this);
+//        point=new LatLng(40.047416,116.312143);
+//        ePoint=new LatLng(40.048424, 116.313513);
+//        mSearch.setOnGetGeoCodeResultListener(this);
+        //骑行导航
+//        BitmapDescriptor bitmap=BitmapDescriptorFactory.fromResource(R.drawable.bb);
+//        OverlayOptions options=new MarkerOptions()
+//                .position(point)
+//                .icon(bitmap)
+//                .draggable(true);
+//        baiduMap.addOverlay(options);
+//        Marker marker=(Marker) baiduMap.addOverlay(options);
+//        baiduMap.setOnMarkerDragListener(new BaiduMap.OnMarkerDragListener() {
+//            @Override
+//            public void onMarkerDrag(Marker marker) {
+//                Toast.makeText(TestActivity.this,"moving",Toast.LENGTH_SHORT).show();
+//            }
+//
+//            @Override
+//            public void onMarkerDragEnd(Marker marker) {
+//                Toast.makeText(TestActivity.this,"stop",Toast.LENGTH_SHORT).show();
+//            }
+//
+//            @Override
+//            public void onMarkerDragStart(Marker marker) {
+//                Toast.makeText(TestActivity.this,"start",Toast.LENGTH_SHORT).show();
+//            }
+//        });
         myOrientationListener=new MyOrientationListener(this);
         myOrientationListener.setOnOrientationListener(x -> myCurrentX=x);
 }
@@ -153,6 +165,21 @@ public class TestActivity extends BaseActivity<Testpresenter> implements Contrac
 
     @Override
     public void PoiResearch(Message msg) {
+        MyPoiOverlay poiOverlay=new MyPoiOverlay(baiduMap);
+        poiOverlay.setData((PoiResult) msg.obj);
+        baiduMap.setOnMarkerClickListener(poiOverlay);
+        poiOverlay.addToMap();
+        poiOverlay.zoomToSpan();
+
+    }
+
+    @Override
+    public void PoiResearchD(Message msg) {
+        ePoint= (LatLng) msg.obj;
+    }
+
+    @Override
+    public void DisplayRoute(Message msg) {
 
     }
 
@@ -193,6 +220,7 @@ public class TestActivity extends BaseActivity<Testpresenter> implements Contrac
         @Override
         public void onReceiveLocation(BDLocation bdLocation) {
                 LatLng latLng=new LatLng(bdLocation.getLatitude(),bdLocation.getLongitude());
+                point=latLng;
                 if(isFristLoctation){
                     MapStatusUpdate update=MapStatusUpdateFactory.newLatLng(latLng);
                     baiduMap.animateMapStatus(update);
@@ -210,6 +238,7 @@ public class TestActivity extends BaseActivity<Testpresenter> implements Contrac
                     0xFFA4F198,
                     0xFFA4F198));
                 baiduMap.setMyLocationData(data);
+                editText.setText(bdLocation.getCity());
         }
     }
 
@@ -269,7 +298,6 @@ public class TestActivity extends BaseActivity<Testpresenter> implements Contrac
         locationClient.stop();
         mapView.onDestroy();
         baiduMap.setMyLocationEnabled(false);
-        poiSearch.destroy();
         search.destroy();
         myOrientationListener.stop();
         Intent intent=new Intent(TestActivity.this,LocationService.class);
@@ -312,7 +340,7 @@ public class TestActivity extends BaseActivity<Testpresenter> implements Contrac
         ;
 //        LatLng lng=new LatLng(((MyLocationData) message.obj).latitude,((MyLocationData) message.obj).longitude);
 //        addCircleOverlay(lng);
-//    }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -339,27 +367,53 @@ public class TestActivity extends BaseActivity<Testpresenter> implements Contrac
     public void onClick(View view) {
         switch(view.getId()){
             case R.id.flbt:
-                PlanNode stNode = PlanNode.withCityNameAndPlaceName("北京", "西二旗地铁站");
-                PlanNode enNode = PlanNode.withCityNameAndPlaceName("北京", "百度科技园");
-                search.bikingSearch((new BikingRoutePlanOption()).from(stNode)
-                        .to(enNode).ridingType(0));
-//                isFristLoctation=true;
-////                myOrientationListener.start();
-////                locationClient.start();
+//                param=new BikeNaviLaunchParam().stPt(point).endPt(ePoint).vehicle(0);
+//                BikeNavigateHelper.getInstance().initNaviEngine(TestActivity.this, new IBEngineInitListener() {
+//                    @Override
+//                    public void engineInitSuccess() {
+//
+//                    }
+//                    @Override
+//                    public void engineInitFail() {
+//
+//                    }
+//                });
+//                BikeNavigateHelper.getInstance().routePlanWithParams(param, new IBRoutePlanListener() {
+//                    @Override
+//                    public void onRoutePlanStart() {
+//
+//                    }
+//                    @Override
+//                    public void onRoutePlanSuccess() {
+//                        Log.d("onRoutePlanSuccess","算路成功");
+//                        Intent intent=new Intent(TestActivity.this,InerActivity.class);
+//                        startActivity(intent);
+//                    }
+//
+//                    @Override
+//                    public void onRoutePlanFail(BikeRoutePlanError bikeRoutePlanError) {
+//                        Log.d("onRoutePlanFail","算路失败");
+//                    }
+//                });
+                isFristLoctation=true;
+                myOrientationListener.start();
+                locationClient.start();
                 break;
             case R.id.flbt1:
                 baiduMap.clear();
                 Log.d("方向",""+myCurrentX);
-                editText=findViewById(R.id.city);
-                editText1=findViewById(R.id.district);
 //                mSearch.reverseGeoCode(new ReverseGeoCodeOption().location(point));
-                String edtext,edtext1;
                 edtext=editText.getText().toString();
                 edtext1=editText1.getText().toString();
-                poiSearch.searchInCity(new PoiCitySearchOption().city(edtext).keyword(edtext1).pageNum(10));
-                mPresenter.startPoiSearch(TestActivity.this,edtext,edtext1);
+                mPresenter.startPoiSearch(TestActivity.this,edtext,edtext1,null);
 //                mSearch.geocode(new GeoCodeOption().city(edtext).address(edtext1));
                 break;
+            case R.id.route:
+                baiduMap.clear();
+                PlanNode stNode = PlanNode.withLocation(point);
+                PlanNode enNode = PlanNode.withLocation(ePoint);
+                search.bikingSearch((new BikingRoutePlanOption()).from(stNode)
+                        .to(enNode).ridingType(0));
                 default:
                     break;
         }
@@ -386,40 +440,6 @@ public class TestActivity extends BaseActivity<Testpresenter> implements Contrac
 //        mSearch.destroy();
     }
 
-    @Override
-    public void onGetPoiResult(PoiResult poiResult) {
-        if(poiResult==null||poiResult.error==SearchResult.ERRORNO.RESULT_NOT_FOUND){
-//            Toast.makeText(TestActivity.this,"未找到结果",Toast.LENGTH_SHORT).show();
-            return;
-        }
-        if (poiResult.error==SearchResult.ERRORNO.NO_ERROR) {
-            MyPoiOverlay poiOverlay=new MyPoiOverlay(baiduMap);
-            poiOverlay.setData(poiResult);
-            baiduMap.setOnMarkerClickListener(poiOverlay);
-            poiOverlay.addToMap();
-            poiOverlay.zoomToSpan();
-//            Toast.makeText(TestActivity.this, "Poi检索" + poiResult.getTotalPageNum() + "页", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    @Override
-    public void onGetPoiDetailResult(PoiDetailResult poiDetailResult) {
-        if (poiDetailResult.error!=SearchResult.ERRORNO.NO_ERROR){
-            Toast.makeText(TestActivity.this,"未找到详细结果",Toast.LENGTH_SHORT).show();
-        }else {
-            Toast.makeText(TestActivity.this,poiDetailResult.getName()+":"+poiDetailResult.getAddress(),Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    @Override
-    public void onGetPoiDetailResult(PoiDetailSearchResult poiDetailSearchResult) {
-
-    }
-
-    @Override
-    public void onGetPoiIndoorResult(PoiIndoorResult poiIndoorResult) {
-
-    }
 
     private class MyPoiOverlay extends PoiOverlay {
         public MyPoiOverlay(BaiduMap baiduMap) {
@@ -430,7 +450,9 @@ public class TestActivity extends BaseActivity<Testpresenter> implements Contrac
         public boolean onPoiClick(int i) {
             super.onPoiClick(i);
             PoiInfo poiInfo=getPoiResult().getAllPoi().get(i);
-            poiSearch.searchPoiDetail(new PoiDetailSearchOption().poiUid(poiInfo.uid));
+            edtext=editText.getText().toString();
+            edtext1=editText1.getText().toString();
+            mPresenter.startPoiSearch(TestActivity.this,edtext,edtext1,poiInfo);
             return true;
         }
     }
